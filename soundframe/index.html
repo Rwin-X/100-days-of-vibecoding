@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Soundframe</title>
+<meta name="description" content="A minimal, precise music player.">
+<meta name="theme-color" content="#FFFFFF">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Soundframe">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ===== TOP BAR ===== -->
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none">
+        <path d="M3 12 L7 12 L9 5 L13 19 L15 9 L17 12 L21 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-name">SOUNDFRAME</span>
+    </div>
+    <nav class="topnav">
+      <button class="navbtn active" data-view="player">PLAYER</button>
+      <button class="navbtn" data-view="library">LIBRARY</button>
+      <button class="navbtn" data-view="playlists">PLAYLISTS</button>
+      <button class="navbtn" data-view="lyrics">LYRICS</button>
+    </nav>
+    <button class="add-btn" id="addFilesBtn" title="Add audio files">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <span>ADD FILES</span>
+    </button>
+    <input type="file" id="fileInput" accept="audio/*" multiple hidden>
+  </header>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+
+    <!-- PLAYER VIEW -->
+    <section class="view view-player active" id="view-player">
+
+      <div class="stage">
+        <div class="stage-meta">
+          <div class="meta-index" id="metaIndex">— / —</div>
+          <h1 class="track-title" id="trackTitle">No track loaded</h1>
+          <div class="track-artist" id="trackArtist">Add files to begin</div>
+        </div>
+
+        <div class="visualizer-wrap">
+          <canvas id="visualizer"></canvas>
+          <div class="visualizer-empty" id="visualizerEmpty">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M3 12 L7 12 L9 5 L13 19 L15 9 L17 12 L21 12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>SIGNAL IDLE</span>
+          </div>
+        </div>
+
+        <div class="scrubber">
+          <span class="time" id="timeCurrent">0:00</span>
+          <div class="scrub-track" id="scrubTrack">
+            <div class="scrub-fill" id="scrubFill"></div>
+            <div class="scrub-handle" id="scrubHandle"></div>
+          </div>
+          <span class="time" id="timeTotal">0:00</span>
+        </div>
+
+        <div class="transport">
+          <button class="tbtn tbtn-ghost" id="shuffleBtn" title="Shuffle">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h3.5l7 12H18M18 6h-3.5m0 0 2.5-2.5M14.5 6 17 8.5M4 18h3.5l2.6-4.5M18 18h-3.5l-1-1.7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <button class="tbtn" id="prevBtn" title="Previous">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M19 5 9 12l10 7V5Z" fill="currentColor"/><rect x="5" y="5" width="2" height="14" fill="currentColor"/></svg>
+          </button>
+          <button class="tbtn tbtn-main" id="playBtn" title="Play">
+            <svg id="playIcon" viewBox="0 0 24 24" fill="none"><path d="M7 5v14l12-7L7 5Z" fill="currentColor"/></svg>
+            <svg id="pauseIcon" viewBox="0 0 24 24" fill="none" style="display:none"><rect x="6" y="5" width="4" height="14" fill="currentColor"/><rect x="14" y="5" width="4" height="14" fill="currentColor"/></svg>
+          </button>
+          <button class="tbtn" id="nextBtn" title="Next">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M5 5l10 7-10 7V5Z" fill="currentColor"/><rect x="17" y="5" width="2" height="14" fill="currentColor"/></svg>
+          </button>
+          <button class="tbtn tbtn-ghost" id="repeatBtn" title="Repeat">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M17 2l4 4-4 4M7 22l-4-4 4-4M3 6h13a4 4 0 0 1 4 4v1M21 18H8a4 4 0 0 1-4-4v-1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+
+        <div class="lower-row">
+          <div class="vol-wrap">
+            <svg viewBox="0 0 24 24" fill="none" class="vol-icon"><path d="M4 9v6h4l5 4V5L8 9H4Z" fill="currentColor"/><path d="M17 8a5 5 0 0 1 0 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            <input type="range" id="volumeSlider" min="0" max="100" value="80" class="vol-slider">
+          </div>
+          <div class="format-tag" id="formatTag">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LIBRARY VIEW -->
+    <section class="view view-library" id="view-library">
+      <div class="view-header">
+        <h2>LIBRARY</h2>
+        <span class="count-tag" id="libraryCount">0 TRACKS</span>
+      </div>
+      <div class="empty-state" id="libraryEmpty">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M9 18V5l12-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm12-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" stroke="currentColor" stroke-width="1.3"/></svg>
+        <p>No tracks yet</p>
+        <button class="empty-cta" id="emptyAddBtn">ADD AUDIO FILES</button>
+      </div>
+      <table class="track-table" id="trackTable" style="display:none">
+        <thead>
+          <tr><th class="col-idx">#</th><th>TITLE</th><th>ARTIST</th><th class="col-dur">TIME</th><th class="col-add"></th></tr>
+        </thead>
+        <tbody id="trackTableBody"></tbody>
+      </table>
+    </section>
+
+    <!-- PLAYLISTS VIEW -->
+    <section class="view view-playlists" id="view-playlists">
+      <div class="view-header">
+        <h2>PLAYLISTS</h2>
+        <button class="empty-cta empty-cta-inline" id="newPlaylistBtn">+ NEW PLAYLIST</button>
+      </div>
+      <div class="playlist-grid" id="playlistGrid"></div>
+      <div class="empty-state" id="playlistsEmpty">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M3 6h13M3 12h13M3 18h7M17 14v6m3-3h-6" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        <p>No playlists yet</p>
+        <button class="empty-cta" id="emptyNewPlaylistBtn">CREATE PLAYLIST</button>
+      </div>
+
+      <div class="playlist-detail" id="playlistDetail" style="display:none">
+        <button class="back-btn" id="playlistBackBtn">← ALL PLAYLISTS</button>
+        <div class="view-header">
+          <h2 id="playlistDetailName">—</h2>
+          <span class="count-tag" id="playlistDetailCount">0 TRACKS</span>
+        </div>
+        <table class="track-table" id="playlistTrackTable">
+          <thead><tr><th class="col-idx">#</th><th>TITLE</th><th>ARTIST</th><th class="col-dur">TIME</th><th class="col-add"></th></tr></thead>
+          <tbody id="playlistTrackTableBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- LYRICS VIEW -->
+    <section class="view view-lyrics" id="view-lyrics">
+      <div class="view-header">
+        <h2>LYRICS</h2>
+        <span class="count-tag" id="lyricsTrackName">NO TRACK</span>
+      </div>
+      <div class="lyrics-body" id="lyricsBody">
+        <div class="empty-state">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 4h16v16H4z" stroke="currentColor" stroke-width="1.2"/><path d="M8 8h8M8 12h8M8 16h4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <p>Paste lyrics for the current track</p>
+        </div>
+      </div>
+      <textarea id="lyricsInput" class="lyrics-input" placeholder="Paste or type lyrics for the current track here..." style="display:none"></textarea>
+      <div class="lyrics-actions" id="lyricsActions" style="display:none">
+        <button class="tbtn-text" id="saveLyricsBtn">SAVE</button>
+        <button class="tbtn-text tbtn-text-ghost" id="editLyricsBtn">EDIT</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== QUEUE DRAWER ===== -->
+  <aside class="queue-drawer" id="queueDrawer">
+    <div class="queue-header">
+      <span>QUEUE</span>
+      <button id="closeQueueBtn">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6 6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="queue-list" id="queueList"></div>
+  </aside>
+  <button class="queue-toggle" id="queueToggleBtn" title="Queue">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+  </button>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- New playlist modal -->
+  <div class="modal-backdrop" id="playlistModalBackdrop" style="display:none">
+    <div class="modal">
+      <h3>NEW PLAYLIST</h3>
+      <input type="text" id="playlistNameInput" placeholder="Playlist name" maxlength="40">
+      <div class="modal-actions">
+        <button class="tbtn-text tbtn-text-ghost" id="playlistModalCancel">CANCEL</button>
+        <button class="tbtn-text" id="playlistModalCreate">CREATE</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<audio id="audioEl" preload="metadata"></audio>
+
+<script src="js/db.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
