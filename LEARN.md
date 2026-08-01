@@ -54,7 +54,8 @@ what i learn :
             ideas will find you
     !!! ::------------------------------------------------------------------------------------------------------------------------------------:: !!!
 
-
+                        claude have a really good output bit i dont lnow when>><<??
+                        
 
 
                         readme to chatanalize.md
