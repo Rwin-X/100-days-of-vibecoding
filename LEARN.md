@@ -56,7 +56,7 @@ what i learn :
 
                         claude have a really good output bit i dont lnow when>><<??
                         
-
+                        no idea ---> out of idea ---<<
 
                         readme to chatanalize.md
                         metastrip overview
