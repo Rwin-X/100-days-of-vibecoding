@@ -44,7 +44,7 @@ what i learn :
                     more cli sec tool
     10 ---->
 
-
+            identity fingerprints ---> claude x gpt
             is that worth it>???
     11 ----> create more and more and more 
 
