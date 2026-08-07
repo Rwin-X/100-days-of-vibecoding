@@ -46,6 +46,13 @@ what i learn :
 
             identity fingerprints ---> claude x gpt
             is that worth it>???
+
+            --- create one thing every day ---
+
+
+
+
+
     11 ----> create more and more and more 
 
 
