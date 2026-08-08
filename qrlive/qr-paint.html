@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>QR Live — Paint</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pako/2.1.0/pako.min.js"></script>
+<style>
+  :root{
+    --bg: #0b0b0c;
+    --panel: #111113;
+    --border: #232326;
+    --border-strong: #3a3a3f;
+    --text: #ededee;
+    --muted: #7a7a80;
+    --danger: #d85a30;
+  }
+  *{ box-sizing: border-box; }
+  html, body{
+    margin:0; padding:0;
+    height:100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  }
+  .wrap{
+    display:flex;
+    min-height:100vh;
+    width:100%;
+  }
+  .left, .right{
+    flex: 1 1 50%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    padding: 40px;
+  }
+  .left{
+    border-right: 1px solid var(--border);
+  }
+  .field{
+    width:100%;
+    max-width: 460px;
+  }
+
+  .toolbar{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    height: 36px;
+    margin-bottom: 10px;
+  }
+  .tool-group{
+    display:flex;
+    align-items:center;
+    gap: 3px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 3px;
+    height: 100%;
+  }
+  .icon-btn{
+    width: 28px;
+    height: 28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: transparent;
+    border: none;
+    border-radius: 5px;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0;
+  }
+  .icon-btn:hover{
+    color: var(--text);
+    background: rgba(255,255,255,0.05);
+  }
+  .icon-btn.active{
+    background: var(--text);
+    color: var(--bg);
+  }
+  .icon-btn svg{
+    width: 15px;
+    height: 15px;
+  }
+
+  .swatches{
+    display:flex;
+    gap: 5px;
+    align-items:center;
+  }
+  .swatch{
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    box-shadow: 0 0 0 2px transparent;
+    cursor: pointer;
+    padding: 0;
+  }
+  .swatch.active{
+    box-shadow: 0 0 0 2px var(--bg), 0 0 0 3px var(--text);
+  }
+
+  .sizes{
+    display:flex;
+    align-items:center;
+    gap: 4px;
+  }
+  .size-btn{
+    width: 24px;
+    height: 24px;
+    border-radius: 5px;
+    border: none;
+    background: transparent;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor: pointer;
+    padding: 0;
+  }
+  .size-btn.active{
+    background: rgba(255,255,255,0.08);
+  }
+  .size-btn span{
+    background: var(--text);
+    border-radius: 50%;
+    display: block;
+  }
+
+  .spacer{ flex: 1; }
+
+  canvas{
+    display:block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #ffffff;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .qr-box{
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width: 260px;
+    min-height: 260px;
+  }
+  .qr-box.empty{
+    background: var(--panel);
+    border: 1px dashed var(--border);
+  }
+  .qr-box.over{
+    background: var(--panel);
+    border: 1px dashed var(--danger);
+  }
+  .empty-text{
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    padding: 0 20px;
+  }
+  .empty-text.over{
+    color: var(--danger);
+  }
+  .meta{
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+  .meta.over{
+    color: var(--danger);
+  }
+  .bar{
+    margin-top: 8px;
+    width: 100%;
+    max-width: 220px;
+    height: 3px;
+    background: var(--panel);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .bar-fill{
+    height: 100%;
+    background: var(--text);
+    width: 0%;
+  }
+  .bar-fill.over{
+    background: var(--danger);
+  }
+  @media (max-width: 720px){
+    .wrap{ flex-direction: column; }
+    .left{ border-right:none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="left">
+    <div class="field">
+      <div class="toolbar">
+        <div class="tool-group">
+          <button class="icon-btn active" data-tool="pen" title="Pen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="M2 2l7.586 7.586"/><circle cx="11" cy="11" r="2"/></svg>
+          </button>
+          <button class="icon-btn" data-tool="line" title="Line">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="5" y1="19" x2="19" y2="5"/></svg>
+          </button>
+          <button class="icon-btn" data-tool="rect" title="Rectangle">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="6" width="16" height="12" rx="1"/></svg>
+          </button>
+          <button class="icon-btn" data-tool="ellipse" title="Ellipse">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="12" rx="8" ry="6"/></svg>
+          </button>
+          <button class="icon-btn" data-tool="eraser" title="Eraser">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H8l-6-6a2 2 0 010-3l9-9a2 2 0 013 0l7 7a2 2 0 010 3l-9 9"/><path d="M6 12l6 6"/></svg>
+          </button>
+        </div>
+
+        <div class="tool-group sizes" id="sizes">
+          <button class="size-btn" data-size="2"><span style="width:3px;height:3px;"></span></button>
+          <button class="size-btn active" data-size="4"><span style="width:5px;height:5px;"></span></button>
+          <button class="size-btn" data-size="7"><span style="width:8px;height:8px;"></span></button>
+          <button class="size-btn" data-size="12"><span style="width:12px;height:12px;"></span></button>
+        </div>
+
+        <div class="spacer"></div>
+
+        <div class="swatches" id="swatches"></div>
+
+        <div class="tool-group">
+          <button class="icon-btn" id="undo" title="Undo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 010 11H11"/></svg>
+          </button>
+          <button class="icon-btn" id="clear" title="Clear">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 011-1h6a1 1 0 011 1v2"/><path d="M19 6l-1 14a1 1 0 01-1 1H7a1 1 0 01-1-1L5 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <canvas id="canvas" width="600" height="600"></canvas>
+    </div>
+  </div>
+  <div class="right">
+    <div class="qr-box empty" id="qrbox">
+      <span class="empty-text" id="placeholder">QR CODE</span>
+    </div>
+    <div class="meta" id="meta"></div>
+    <div class="bar"><div class="bar-fill" id="barfill"></div></div>
+  </div>
+</div>
+
+<script>
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const qrbox = document.getElementById('qrbox');
+  const meta = document.getElementById('meta');
+  const barfill = document.getElementById('barfill');
+  const undoBtn = document.getElementById('undo');
+  const clearBtn = document.getElementById('clear');
+  const swatchesEl = document.getElementById('swatches');
+
+  const GRID = 100;
+  const CAP = 2900;
+
+  const PALETTE = ['#000000', '#d85a30', '#1d9e75', '#378add', '#ba7517', '#993556'];
+
+  let strokes = [];
+  let currentStroke = null;
+  let drawing = false;
+  let tool = 'pen';
+  let color = PALETTE[0];
+  let brushSize = 4;
+  let startPoint = null;
+
+  function buildSwatches(){
+    PALETTE.forEach((c, i) => {
+      const b = document.createElement('button');
+      b.className = 'swatch' + (i === 0 ? ' active' : '');
+      b.style.background = c;
+      b.dataset.color = c;
+      b.addEventListener('click', () => {
+        color = c;
+        document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
+        b.classList.add('active');
+      });
+      swatchesEl.appendChild(b);
+    });
+  }
+  buildSwatches();
+
+  document.querySelectorAll('[data-tool]').forEach(b => {
+    b.addEventListener('click', () => {
+      tool = b.dataset.tool;
+      document.querySelectorAll('[data-tool]').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.size-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      brushSize = parseInt(b.dataset.size, 10);
+      document.querySelectorAll('.size-btn').forEach(x => x.classList.remove('active'));
+      b.classList.add('active');
+    });
+  });
+
+  function resizeCanvasBitmap(){
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    redraw();
+  }
+
+  function toGrid(clientX, clientY){
+    const rect = canvas.getBoundingClientRect();
+    const x = Math.round(((clientX - rect.left) / rect.width) * GRID);
+    const y = Math.round(((clientY - rect.top) / rect.height) * GRID);
+    return [Math.max(0, Math.min(GRID, x)), Math.max(0, Math.min(GRID, y))];
+  }
+
+  function gridToPixel(gx, gy){
+    const rect = canvas.getBoundingClientRect();
+    return [(gx / GRID) * rect.width, (gy / GRID) * rect.height];
+  }
+
+  function applyStyle(shape){
+    ctx.strokeStyle = shape.tool === 'eraser' ? '#ffffff' : shape.color;
+    ctx.lineWidth = (shape.width / GRID) * canvas.getBoundingClientRect().width;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  }
+
+  function redraw(){
+    const rect = canvas.getBoundingClientRect();
+    ctx.clearRect(0, 0, rect.width, rect.height);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, rect.width, rect.height);
+    for(const s of strokes){
+      drawShape(s);
+    }
+  }
+
+  function drawShape(shape){
+    applyStyle(shape);
+    const p = shape.points;
+
+    if(shape.tool === 'pen' || shape.tool === 'eraser'){
+      if(p.length < 2) return;
+      ctx.beginPath();
+      const [sx, sy] = gridToPixel(p[0], p[1]);
+      ctx.moveTo(sx, sy);
+      for(let i = 2; i < p.length; i += 2){
+        const [px, py] = gridToPixel(p[i], p[i+1]);
+        ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      return;
+    }
+
+    if(p.length < 4) return;
+    const [x1, y1] = gridToPixel(p[0], p[1]);
+    const [x2, y2] = gridToPixel(p[2], p[3]);
+
+    if(shape.tool === 'line'){
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    } else if(shape.tool === 'rect'){
+      ctx.strokeRect(Math.min(x1,x2), Math.min(y1,y2), Math.abs(x2-x1), Math.abs(y2-y1));
+    } else if(shape.tool === 'ellipse'){
+      const cx = (x1+x2)/2, cy = (y1+y2)/2;
+      const rx = Math.abs(x2-x1)/2, ry = Math.abs(y2-y1)/2;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2);
+      ctx.stroke();
+    }
+  }
+
+  function pointerDown(clientX, clientY){
+    drawing = true;
+    const [gx, gy] = toGrid(clientX, clientY);
+    const activeTool = tool;
+    const activeColor = activeTool === 'eraser' ? '#ffffff' : color;
+
+    currentStroke = { tool: activeTool, color: activeColor, width: brushSize, points: [gx, gy] };
+
+    if(activeTool !== 'pen' && activeTool !== 'eraser'){
+      startPoint = [gx, gy];
+      currentStroke.points = [gx, gy, gx, gy];
+    }
+  }
+
+  function pointerMove(clientX, clientY){
+    if(!drawing) return;
+    const [gx, gy] = toGrid(clientX, clientY);
+
+    if(currentStroke.tool === 'pen' || currentStroke.tool === 'eraser'){
+      const p = currentStroke.points;
+      if(p[p.length-2] === gx && p[p.length-1] === gy) return;
+      p.push(gx, gy);
+    } else {
+      currentStroke.points = [startPoint[0], startPoint[1], gx, gy];
+    }
+
+    redraw();
+    drawShape(currentStroke);
+  }
+
+  function pointerUp(){
+    if(!drawing) return;
+    drawing = false;
+    if(currentStroke && currentStroke.points.length >= 4){
+      strokes.push(currentStroke);
+    }
+    currentStroke = null;
+    startPoint = null;
+    redraw();
+    renderQR();
+  }
+
+  canvas.addEventListener('mousedown', e => pointerDown(e.clientX, e.clientY));
+  canvas.addEventListener('mousemove', e => pointerMove(e.clientX, e.clientY));
+  window.addEventListener('mouseup', pointerUp);
+
+  canvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    pointerDown(t.clientX, t.clientY);
+  }, {passive:false});
+  canvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    pointerMove(t.clientX, t.clientY);
+  }, {passive:false});
+  canvas.addEventListener('touchend', e => {
+    e.preventDefault();
+    pointerUp();
+  }, {passive:false});
+
+  undoBtn.addEventListener('click', () => {
+    strokes.pop();
+    redraw();
+    renderQR();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    strokes = [];
+    redraw();
+    renderQR();
+  });
+
+  function encodeDrawing(){
+    if(strokes.length === 0) return '';
+    const compact = strokes.map(s => [s.tool, s.color, s.width, s.points]);
+    const json = JSON.stringify(compact);
+    const compressed = pako.deflate(json);
+    let binary = '';
+    for(let i = 0; i < compressed.length; i++){
+      binary += String.fromCharCode(compressed[i]);
+    }
+    return btoa(binary);
+  }
+
+  function renderQR(){
+    const payload = encodeDrawing();
+    const pct = Math.min(100, Math.round((payload.length / CAP) * 100));
+
+    if(!payload){
+      qrbox.className = 'qr-box empty';
+      qrbox.innerHTML = '<span class="empty-text">QR CODE</span>';
+      meta.className = 'meta';
+      meta.textContent = '';
+      barfill.style.width = '0%';
+      barfill.className = 'bar-fill';
+      return;
+    }
+
+    barfill.style.width = pct + '%';
+    barfill.className = 'bar-fill' + (payload.length > CAP ? ' over' : '');
+
+    if(payload.length > CAP){
+      qrbox.className = 'qr-box over';
+      qrbox.innerHTML = '<span class="empty-text over">Drawing too complex<br>undo a few strokes</span>';
+      meta.className = 'meta over';
+      meta.textContent = payload.length + ' / ' + CAP + ' bytes';
+      return;
+    }
+
+    qrbox.className = 'qr-box';
+    qrbox.innerHTML = '';
+    new QRCode(qrbox, {
+      text: payload,
+      width: 220,
+      height: 220,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.L
+    });
+    meta.className = 'meta';
+    meta.textContent = payload.length + ' / ' + CAP + ' bytes';
+  }
+
+  window.addEventListener('resize', resizeCanvasBitmap);
+  resizeCanvasBitmap();
+</script>
+</body>
+</html>
