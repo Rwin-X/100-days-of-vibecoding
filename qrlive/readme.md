@@ -75,6 +75,3 @@ MIT — use it, fork it, ship it.
 
 ---
 
-<div align="center">
-<sub>Built by <a href="https://github.com/black8arch">black8arch</a></sub>
-</div>
