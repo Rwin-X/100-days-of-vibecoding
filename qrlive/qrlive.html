@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>QR Live</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --bg: #0b0b0c;
+    --panel: #111113;
+    --border: #232326;
+    --text: #ededee;
+    --muted: #7a7a80;
+    --accent: #ffffff;
+  }
+  *{ box-sizing: border-box; }
+  html, body{
+    margin:0; padding:0;
+    height:100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  }
+  .wrap{
+    display:flex;
+    min-height:100vh;
+    width:100%;
+  }
+  .left, .right{
+    flex: 1 1 50%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    padding: 40px;
+  }
+  .left{
+    border-left: 1px solid var(--border);
+  }
+  .field{
+    width:100%;
+    max-width: 420px;
+  }
+  .label{
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    direction: ltr;
+    text-align: left;
+  }
+  textarea{
+    width:100%;
+    min-height: 220px;
+    resize: vertical;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 16px;
+    outline: none;
+    direction: ltr;
+  }
+  textarea::placeholder{
+    color: var(--muted);
+  }
+  textarea:focus{
+    border-color: #3a3a3f;
+  }
+  .qr-box{
+    background: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width: 260px;
+    min-height: 260px;
+  }
+  .qr-box.empty{
+    background: var(--panel);
+    border: 1px dashed var(--border);
+  }
+  .empty-text{
+    color: var(--muted);
+    font-size: 13px;
+    direction: ltr;
+  }
+  .meta{
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    direction: ltr;
+    letter-spacing: 0.04em;
+  }
+  @media (max-width: 720px){
+    .wrap{ flex-direction: column; }
+    .left{ border-left:none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="left">
+    <div class="field">
+      <div class="label">Text</div>
+      <textarea id="input" placeholder="Type your text here..." autofocus></textarea>
+    </div>
+  </div>
+  <div class="right">
+    <div class="qr-box empty" id="qrbox">
+      <span class="empty-text" id="placeholder">QR CODE</span>
+    </div>
+    <div class="meta" id="meta"></div>
+  </div>
+</div>
+
+<script>
+  const input = document.getElementById('input');
+  const qrbox = document.getElementById('qrbox');
+  const meta = document.getElementById('meta');
+  let qr = null;
+
+  function render(){
+    const text = input.value;
+    if(!text.trim()){
+      qrbox.innerHTML = '<span class="empty-text">QR CODE</span>';
+      qrbox.classList.add('empty');
+      meta.textContent = '';
+      qr = null;
+      return;
+    }
+    qrbox.classList.remove('empty');
+    qrbox.innerHTML = '';
+    qr = new QRCode(qrbox, {
+      text: text,
+      width: 220,
+      height: 220,
+      colorDark: '#000000',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+    meta.textContent = text.length + ' chars';
+  }
+
+  input.addEventListener('input', render);
+</script>
+</body>
+</html>
