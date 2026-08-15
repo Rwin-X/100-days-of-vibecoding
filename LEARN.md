@@ -67,3 +67,5 @@ what i learn :
 
                         readme to chatanalize.md
                         metastrip overview
+
+                _______________________ or the foreign _____________________________
