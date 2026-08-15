@@ -62,7 +62,7 @@ what i learn :
     !!! ::------------------------------------------------------------------------------------------------------------------------------------:: !!!
 
                         claude have a really good output bit i dont lnow when>><<??
-                        
+                        matrix fear death nightmare? antropic ai west 
                         no idea ---> out of idea ---<<
 
                         readme to chatanalize.md
