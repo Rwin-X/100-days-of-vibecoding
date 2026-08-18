@@ -51,7 +51,7 @@ An internet connection is required on first load, since PDF.js is fetched from a
 
 - All rendering happens client-side; PDFs are never uploaded anywhere
 - Designed as a single portable file — safe to rename, move, or share as-is
-- Part of the [`devforge`](https://github.com/black8arch/devforge) collection of tools by [black8arch](https://github.com/black8arch)
+
 
 ## License
 
