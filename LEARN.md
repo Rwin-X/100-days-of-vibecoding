@@ -48,12 +48,13 @@ what i learn :
             is that worth it>???
 
             --- create one thing every day ---
-
-
+            time to go more deeper and have roadmap 
+            
 
 
 
     11 ----> create more and more and more 
+    
 
 
     !! 12 :  
