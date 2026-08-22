@@ -42,8 +42,8 @@ pip install pygments
 Then just drop `pcat.py` somewhere on your `PATH`, or run it directly:
 
 ```bash
-git clone https://github.com/black8arch/devforge.git
-cd devforge/pcat
+git clone https://github.com/Rwin-x/Devforge.git
+cd Devforge-/pCLI
 python3 pcat.py --help
 ```
 
