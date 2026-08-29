@@ -1,0 +1,2268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCENSION — Runner Protocol</title>
+<style>
+/* ============================================================
+   ASCENSION — RUNNER PROTOCOL
+   Monochrome athletic operating system. Swiss editorial grid,
+   restrained motion, strict type hierarchy.
+   ============================================================ */
+
+@font-face { font-family: 'Inter'; font-weight: 100 900; src: local('Inter'); }
+
+:root {
+  --bg: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-inset: #f4f4f4;
+  --text-primary: #0a0a0a;
+  --text-secondary: #6b6b6b;
+  --text-tertiary: #a3a3a3;
+  --border: rgba(10,10,10,0.10);
+  --border-strong: rgba(10,10,10,0.18);
+  --accent: #d6ff3f;
+  --accent-ink: #0a0a0a;
+  --danger: #c1443a;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 8px 24px rgba(0,0,0,0.06);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+}
+
+html[data-theme="dark"] {
+  --bg: #0a0a0a;
+  --bg-elevated: #121212;
+  --bg-inset: #161616;
+  --text-primary: #f5f5f5;
+  --text-secondary: #8f8f8f;
+  --text-tertiary: #5c5c5c;
+  --border: rgba(255,255,255,0.09);
+  --border-strong: rgba(255,255,255,0.16);
+  --accent: #d6ff3f;
+  --accent-ink: #0a0a0a;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 12px 32px rgba(0,0,0,0.45);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 220ms var(--ease), color 220ms var(--ease);
+  overflow-x: hidden;
+}
+
+img, svg { display: block; max-width: 100%; }
+button { font-family: inherit; cursor: pointer; }
+a { color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+@media (max-width: 720px) {
+  .wrap { padding: 0 20px; }
+}
+
+/* ---------- Typographic scale ---------- */
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.section-title {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.section-sub {
+  font-size: 15px;
+  color: var(--text-secondary);
+  margin-top: 8px;
+  max-width: 52ch;
+}
+
+.metric-huge {
+  font-size: clamp(48px, 8vw, 88px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+}
+
+.metric-unit {
+  font-size: 0.32em;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+  margin-left: 6px;
+}
+
+/* ============================================================
+   PROGRESS RAIL — persistent vertical scroll indicator
+   ============================================================ */
+
+#scroll-rail {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  width: 0%;
+  background: var(--text-primary);
+  z-index: 999;
+  transition: width 80ms linear;
+}
+
+/* ============================================================
+   TOP BAR
+   ============================================================ */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--border);
+}
+
+.topbar-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.topbar-mark {
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+.topbar-mark span { color: var(--text-tertiary); font-weight: 600; }
+
+.topbar-right { display: flex; align-items: center; gap: 14px; }
+
+.day-chip {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.theme-toggle {
+  display: flex;
+  border: 1px solid var(--border-strong);
+  border-radius: 100px;
+  padding: 2px;
+  gap: 2px;
+  background: var(--bg-inset);
+}
+
+.theme-toggle button {
+  border: none;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 5px 11px;
+  border-radius: 100px;
+  transition: all 180ms var(--ease);
+}
+
+.theme-toggle button.active {
+  background: var(--text-primary);
+  color: var(--bg);
+}
+
+/* ============================================================
+   HEADER / HERO
+   ============================================================ */
+
+.hero {
+  padding: 72px 0 56px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+
+.hero-mark {
+  font-size: clamp(46px, 9vw, 96px);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 0.92;
+}
+
+.hero-mark .sub-mark {
+  display: block;
+  font-size: 0.34em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--text-secondary);
+  margin-top: 10px;
+}
+
+.hero-flow {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.flow-node {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: 100px;
+  color: var(--text-secondary);
+}
+
+.flow-arrow { color: var(--text-tertiary); font-size: 13px; }
+
+.hero-meta {
+  margin-top: 40px;
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.hero-meta-item .num {
+  font-size: 22px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.hero-meta-item .lbl {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-top: 3px;
+}
+
+/* ============================================================
+   SECTION SHELL
+   ============================================================ */
+
+.section {
+  padding: 64px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+
+/* ============================================================
+   TODAY CARD
+   ============================================================ */
+
+.today-card {
+  background: var(--text-primary);
+  color: var(--bg);
+  border-radius: var(--radius-lg);
+  padding: 40px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+html[data-theme="dark"] .today-card { background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+
+.today-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 40px;
+  align-items: start;
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 780px) {
+  .today-grid { grid-template-columns: 1fr; gap: 28px; }
+}
+
+.today-day-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.today-day {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.today-live {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 rgba(214,255,63,0.5);
+  animation: pulse-dot 2.2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(214,255,63,0.45); }
+  50% { box-shadow: 0 0 0 6px rgba(214,255,63,0); }
+}
+
+.today-workout-name {
+  font-size: clamp(30px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+
+.today-stats {
+  display: flex;
+  gap: 36px;
+  margin-top: 26px;
+  flex-wrap: wrap;
+}
+
+.today-stat .v {
+  font-size: 30px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.today-stat .l {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.55;
+  margin-top: 4px;
+}
+
+.today-instructions {
+  font-size: 15px;
+  line-height: 1.6;
+  opacity: 0.82;
+  margin-top: 26px;
+  max-width: 46ch;
+  font-style: italic;
+}
+
+.today-side {
+  border-left: 1px solid rgba(255,255,255,0.14);
+  padding-left: 32px;
+}
+
+html[data-theme="dark"] .today-side { border-left-color: var(--border-strong); }
+
+@media (max-width: 780px) {
+  .today-side { border-left: none; border-top: 1px solid rgba(255,255,255,0.14); padding-left: 0; padding-top: 24px; }
+  html[data-theme="dark"] .today-side { border-top-color: var(--border-strong); }
+}
+
+.today-side-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 10px;
+}
+
+.today-objective {
+  font-size: 15px;
+  line-height: 1.55;
+  opacity: 0.9;
+}
+
+/* ============================================================
+   WEEK TIMELINE
+   ============================================================ */
+
+.week-rail {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 900px) {
+  .week-rail { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 560px) {
+  .week-rail { grid-template-columns: repeat(2, 1fr); }
+}
+
+.week-pip {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 12px;
+  transition: all 200ms var(--ease);
+  cursor: pointer;
+  background: var(--bg-elevated);
+}
+
+.week-pip:hover { border-color: var(--border-strong); }
+
+.week-pip.is-today {
+  border-color: var(--text-primary);
+  background: var(--text-primary);
+  color: var(--bg);
+}
+
+.week-pip .d {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.55;
+}
+
+.week-pip .t {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 6px;
+  letter-spacing: -0.01em;
+}
+
+.week-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.day-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 26px;
+  background: var(--bg-elevated);
+  transition: border-color 200ms var(--ease), transform 200ms var(--ease), box-shadow 200ms var(--ease);
+  scroll-margin-top: 80px;
+}
+
+.day-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-sm);
+}
+
+.day-card.is-today {
+  border-color: var(--text-primary);
+  border-width: 1.5px;
+}
+
+.day-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 14px;
+}
+
+.day-card-day {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.day-card-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--text-primary);
+  color: var(--bg);
+  padding: 3px 8px;
+  border-radius: 100px;
+}
+
+.day-card-title {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 16px;
+}
+
+.day-card-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.day-card-row:first-of-type { border-top: none; }
+
+.day-card-row .k { color: var(--text-tertiary); font-weight: 500; }
+.day-card-row .v { color: var(--text-primary); font-weight: 600; text-align: right; max-width: 60%; }
+
+.day-card-structure {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.day-card-structure-item {
+  display: flex;
+  gap: 10px;
+  font-size: 12.5px;
+  padding: 5px 0;
+  color: var(--text-secondary);
+}
+
+.day-card-structure-item .tag {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text-primary);
+  min-width: 62px;
+  flex-shrink: 0;
+}
+
+.day-card-goal {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.day-card-goal strong { color: var(--text-primary); font-weight: 600; }
+
+.day-card-note {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+/* ============================================================
+   TRAINING ZONES
+   ============================================================ */
+
+.zone-bar {
+  display: flex;
+  height: 14px;
+  border-radius: 100px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  margin-bottom: 28px;
+}
+
+.zone-seg { flex: 1; position: relative; transition: transform 200ms var(--ease); }
+.zone-seg:not(:last-child) { border-right: 1px solid var(--bg); }
+
+html[data-theme="dark"] .zone-seg:not(:last-child) { border-right-color: var(--bg); }
+
+.zone-seg[data-z="1"] { background: #d8d8d8; }
+.zone-seg[data-z="2"] { background: var(--accent); }
+.zone-seg[data-z="3"] { background: #a3a3a3; }
+.zone-seg[data-z="4"] { background: #6b6b6b; }
+.zone-seg[data-z="5"] { background: #0a0a0a; }
+
+html[data-theme="dark"] .zone-seg[data-z="1"] { background: #3a3a3a; }
+html[data-theme="dark"] .zone-seg[data-z="3"] { background: #4a4a4a; }
+html[data-theme="dark"] .zone-seg[data-z="4"] { background: #6b6b6b; }
+html[data-theme="dark"] .zone-seg[data-z="5"] { background: #d0d0d0; }
+
+.zone-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 30px;
+}
+
+@media (max-width: 760px) {
+  .zone-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.zone-item {
+  padding: 16px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.zone-item.primary {
+  border-color: var(--text-primary);
+  border-width: 1.5px;
+  position: relative;
+}
+
+.zone-item.primary::after {
+  content: 'PRIMARY';
+  position: absolute;
+  top: -9px; right: 12px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  background: var(--accent);
+  color: var(--accent-ink);
+  padding: 2px 7px;
+  border-radius: 100px;
+}
+
+.zone-item .zn { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; color: var(--text-tertiary); }
+.zone-item .zt { font-size: 15px; font-weight: 700; margin-top: 4px; letter-spacing: -0.01em; }
+
+.principle-strip {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.principle-note {
+  flex: 1;
+  min-width: 240px;
+  padding: 20px;
+  background: var(--bg-inset);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.principle-note .pn-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+
+.principle-note p { color: var(--text-secondary); }
+.principle-note .quote { font-style: italic; color: var(--text-primary); font-weight: 500; }
+
+/* ============================================================
+   INTENSITY CARDS
+   ============================================================ */
+
+.intensity-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+@media (max-width: 800px) {
+  .intensity-grid { grid-template-columns: 1fr; }
+}
+
+.intensity-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 28px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 200ms var(--ease);
+}
+
+.intensity-card:hover { border-color: var(--border-strong); }
+
+.intensity-card .ic-num {
+  position: absolute;
+  top: 16px; right: 20px;
+  font-size: 46px;
+  font-weight: 800;
+  color: var(--text-primary);
+  opacity: 0.05;
+  letter-spacing: -0.03em;
+}
+
+.intensity-card h3 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin-bottom: 20px;
+}
+
+.ic-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  font-size: 13px;
+}
+.ic-row:first-of-type { border-top: none; }
+.ic-row .k { color: var(--text-tertiary); }
+.ic-row .v { font-weight: 600; }
+
+/* ============================================================
+   LONG RUN PROGRESSION
+   ============================================================ */
+
+.progression-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 220px;
+  padding: 20px 0 0;
+  border-bottom: 1px solid var(--border-strong);
+  margin-bottom: 6px;
+}
+
+.prog-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 8px;
+  cursor: default;
+}
+
+.prog-bar-wrap { flex: 1; display: flex; align-items: flex-end; width: 100%; justify-content: center; }
+
+.prog-bar {
+  width: 60%;
+  min-width: 18px;
+  background: var(--text-primary);
+  border-radius: 4px 4px 0 0;
+  transform-origin: bottom;
+  animation: grow-bar 700ms var(--ease) backwards;
+  transition: opacity 200ms var(--ease);
+}
+
+.prog-col.deload .prog-bar {
+  background: repeating-linear-gradient(135deg, var(--text-tertiary), var(--text-tertiary) 4px, transparent 4px, transparent 8px);
+}
+
+@keyframes grow-bar {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+
+.prog-col .pv {
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.prog-col.deload .pv { color: var(--text-tertiary); }
+
+.prog-labels {
+  display: flex;
+  gap: 8px;
+}
+
+.prog-labels .pl {
+  flex: 1;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-tertiary);
+}
+
+.prog-legend {
+  display: flex;
+  gap: 24px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+.prog-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.legend-swatch { width: 12px; height: 12px; border-radius: 3px; background: var(--text-primary); }
+.legend-swatch.deload { background: repeating-linear-gradient(135deg, var(--text-tertiary), var(--text-tertiary) 3px, transparent 3px, transparent 6px); }
+
+.progression-note {
+  margin-top: 28px;
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-style: italic;
+  max-width: 60ch;
+}
+
+/* ============================================================
+   CHECKLISTS
+   ============================================================ */
+
+.checklist-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 760px) {
+  .checklist-grid { grid-template-columns: 1fr; }
+}
+
+.checklist-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 28px;
+}
+
+.checklist-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.checklist-card-head h3 {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.checklist-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+}
+
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 0;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+
+.check-item:first-of-type { border-top: none; }
+
+.check-box {
+  width: 19px; height: 19px;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 5px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 180ms var(--ease);
+}
+
+.check-box svg {
+  width: 11px; height: 11px;
+  opacity: 0;
+  transform: scale(0.5);
+  transition: all 180ms var(--ease);
+}
+
+.check-item.checked .check-box {
+  background: var(--text-primary);
+  border-color: var(--text-primary);
+}
+
+html[data-theme="dark"] .check-item.checked .check-box { background: var(--accent); border-color: var(--accent); }
+
+.check-item.checked .check-box svg { opacity: 1; transform: scale(1); }
+.check-item.checked .check-box svg path { stroke: var(--bg); }
+html[data-theme="dark"] .check-item.checked .check-box svg path { stroke: var(--accent-ink); }
+
+.check-label {
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: color 180ms var(--ease), opacity 180ms var(--ease);
+}
+
+.check-item.checked .check-label {
+  color: var(--text-tertiary);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   TECHNIQUE
+   ============================================================ */
+
+.technique-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.technique-row {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  padding: 24px 0;
+  border-top: 1px solid var(--border);
+}
+
+.technique-row:first-child { border-top: none; padding-top: 0; }
+
+@media (max-width: 700px) {
+  .technique-row { grid-template-columns: 1fr; gap: 8px; }
+}
+
+.technique-name {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.technique-body { color: var(--text-secondary); font-size: 14.5px; line-height: 1.65; max-width: 60ch; }
+
+/* ============================================================
+   RECOVERY
+   ============================================================ */
+
+.recovery-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .recovery-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.recovery-cell {
+  background: var(--bg-elevated);
+  padding: 26px 22px;
+}
+
+.recovery-cell .rc-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 10px;
+}
+
+.recovery-cell .rc-value {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+
+.recovery-cell .rc-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ============================================================
+   RULES
+   ============================================================ */
+
+.rules-list { display: flex; flex-direction: column; }
+
+.rule-row {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 20px;
+  padding: 20px 0;
+  border-top: 1px solid var(--border);
+  align-items: baseline;
+}
+
+.rule-row:first-child { border-top: none; padding-top: 0; }
+
+.rule-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.rule-text {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+
+.rule-row.warn .rule-text { color: var(--text-primary); }
+.rule-row.warn .rule-num { color: var(--danger); }
+
+/* ============================================================
+   WEEKLY TRACKER
+   ============================================================ */
+
+.tracker-shell {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+}
+
+.tracker-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-bottom: 26px;
+  flex-wrap: wrap;
+}
+
+.tracker-completion .metric-huge { font-size: clamp(38px, 6vw, 56px); }
+
+.tracker-progress-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 100px;
+  background: var(--bg-inset);
+  overflow: hidden;
+  margin: 22px 0 26px;
+}
+
+.tracker-progress-fill {
+  height: 100%;
+  background: var(--text-primary);
+  border-radius: 100px;
+  width: 0%;
+  transition: width 420ms var(--ease);
+}
+
+html[data-theme="dark"] .tracker-progress-fill { background: var(--accent); }
+
+.tracker-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 760px) {
+  .tracker-days { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 480px) {
+  .tracker-days { grid-template-columns: repeat(2, 1fr); }
+}
+
+.tracker-day {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 16px 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 180ms var(--ease);
+  user-select: none;
+}
+
+.tracker-day:hover { border-color: var(--border-strong); }
+
+.tracker-day .td-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 12px;
+}
+
+.tracker-day .td-box {
+  width: 26px; height: 26px;
+  margin: 0 auto;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 180ms var(--ease);
+}
+
+.tracker-day .td-box svg {
+  width: 13px; height: 13px;
+  opacity: 0;
+  transform: scale(0.4);
+  transition: all 180ms var(--ease);
+}
+
+.tracker-day.done { border-color: var(--text-primary); }
+.tracker-day.done .td-box { background: var(--text-primary); border-color: var(--text-primary); }
+html[data-theme="dark"] .tracker-day.done .td-box { background: var(--accent); border-color: var(--accent); }
+.tracker-day.done .td-box svg { opacity: 1; transform: scale(1); }
+.tracker-day.done .td-box svg path { stroke: var(--bg); }
+html[data-theme="dark"] .tracker-day.done .td-box svg path { stroke: var(--accent-ink); }
+
+.tracker-day.rest { cursor: default; opacity: 0.5; }
+.tracker-day.rest .td-box { border-style: dashed; }
+.tracker-day.rest .td-label { color: var(--text-tertiary); }
+
+.tracker-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.btn-reset {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  border-radius: 100px;
+  padding: 10px 18px;
+  transition: all 180ms var(--ease);
+}
+
+.btn-reset:hover { border-color: var(--text-primary); color: var(--text-primary); }
+
+/* ============================================================
+   LOG
+   ============================================================ */
+
+.log-form {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 760px) {
+  .log-form { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 480px) {
+  .log-form { grid-template-columns: 1fr; }
+}
+
+.log-field { display: flex; flex-direction: column; gap: 7px; }
+
+.log-field label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.log-field input, .log-field select, .log-field textarea {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 11px 13px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  transition: border-color 180ms var(--ease);
+}
+
+.log-field input:focus, .log-field select:focus, .log-field textarea:focus {
+  border-color: var(--text-primary);
+  outline: none;
+}
+
+.log-field.span2 { grid-column: span 2; }
+@media (max-width: 480px) { .log-field.span2 { grid-column: span 1; } }
+
+.log-field textarea { resize: vertical; min-height: 42px; font-family: inherit; }
+
+.btn-primary {
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--text-primary);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 13px 20px;
+  transition: opacity 180ms var(--ease), transform 180ms var(--ease);
+  align-self: end;
+}
+
+.btn-primary:hover { opacity: 0.85; }
+.btn-primary:active { transform: scale(0.98); }
+
+.log-table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md); }
+
+table.log-table { width: 100%; border-collapse: collapse; min-width: 640px; }
+
+.log-table th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  padding: 13px 16px;
+  border-bottom: 1px solid var(--border-strong);
+  background: var(--bg-inset);
+  white-space: nowrap;
+}
+
+.log-table td {
+  padding: 13px 16px;
+  font-size: 13.5px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.log-table tr:last-child td { border-bottom: none; }
+
+.log-table td.notes-cell { white-space: normal; min-width: 180px; }
+
+.log-empty {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13.5px;
+}
+
+.log-del {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 16px;
+  line-height: 1;
+  padding: 4px;
+  transition: color 180ms var(--ease);
+}
+
+.log-del:hover { color: var(--danger); }
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.site-footer {
+  padding: 40px 0 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.site-footer .fm {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   REVEAL ON SCROLL
+   ============================================================ */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 560ms var(--ease), transform 560ms var(--ease);
+}
+.reveal.in { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<div id="scroll-rail"></div>
+
+<header class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="topbar-mark">ASCENSION <span>/ RUNNER PROTOCOL</span></div>
+    <div class="topbar-right">
+      <span class="day-chip" id="topbar-day">—</span>
+      <div class="theme-toggle" role="group" aria-label="Theme">
+        <button type="button" id="theme-light" onclick="setTheme('light')">LIGHT</button>
+        <button type="button" id="theme-dark" onclick="setTheme('dark')">DARK</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ HERO / HEADER ============ -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-mark">
+        ASCENSION
+        <span class="sub-mark">RUNNER PROTOCOL</span>
+      </div>
+      <div class="hero-flow">
+        <span class="flow-node">Discipline</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-node">Consistency</span>
+        <span class="flow-arrow">→</span>
+        <span class="flow-node">Endurance</span>
+      </div>
+      <div class="hero-meta">
+        <div class="hero-meta-item">
+          <div class="num">6</div>
+          <div class="lbl">Days Running</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="num">1</div>
+          <div class="lbl">Day Recovery</div>
+        </div>
+        <div class="hero-meta-item">
+          <div class="num">12</div>
+          <div class="lbl">Week Cycle</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TODAY'S WORKOUT ============ -->
+  <section class="section">
+    <div class="wrap">
+      <div class="today-card reveal">
+        <div class="today-grid">
+          <div>
+            <div class="today-day-row">
+              <span class="today-live" aria-hidden="true"></span>
+              <span class="today-day" id="today-day-label">—</span>
+            </div>
+            <div class="today-workout-name" id="today-workout-name">—</div>
+            <div class="today-stats">
+              <div class="today-stat">
+                <div class="v" id="today-distance">—</div>
+                <div class="l">Distance</div>
+              </div>
+              <div class="today-stat">
+                <div class="v" id="today-intensity">—</div>
+                <div class="l">Intensity</div>
+              </div>
+            </div>
+            <div class="today-instructions" id="today-instructions">—</div>
+          </div>
+          <div class="today-side">
+            <div class="today-side-label">Main Objective</div>
+            <div class="today-objective" id="today-objective">—</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WEEKLY TRAINING PLAN ============ -->
+  <section class="section" id="weekly-plan">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow">Weekly Structure</div>
+          <div class="section-title">Training Plan</div>
+          <div class="section-sub">Seven days, one rhythm. Six sessions build the engine — one day lets it adapt.</div>
+        </div>
+      </div>
+
+      <div class="week-rail reveal" id="week-rail"></div>
+      <div class="week-cards" id="week-cards"></div>
+    </div>
+  </section>
+
+  <!-- ============ TRAINING ZONES ============ -->
+  <section class="section" id="zones">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow">Effort Calibration</div>
+          <div class="section-title">Training Zones</div>
+          <div class="section-sub">Five zones of effort. Most of the week should live in one of them.</div>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <div class="zone-bar" aria-hidden="true">
+          <div class="zone-seg" data-z="1"></div>
+          <div class="zone-seg" data-z="2"></div>
+          <div class="zone-seg" data-z="3"></div>
+          <div class="zone-seg" data-z="4"></div>
+          <div class="zone-seg" data-z="5"></div>
+        </div>
+
+        <div class="zone-grid">
+          <div class="zone-item">
+            <div class="zn">ZONE 1</div>
+            <div class="zt">Recovery</div>
+          </div>
+          <div class="zone-item primary">
+            <div class="zn">ZONE 2</div>
+            <div class="zt">Aerobic Base</div>
+          </div>
+          <div class="zone-item">
+            <div class="zn">ZONE 3</div>
+            <div class="zt">Moderate</div>
+          </div>
+          <div class="zone-item">
+            <div class="zn">ZONE 4</div>
+            <div class="zt">Tempo</div>
+          </div>
+          <div class="zone-item">
+            <div class="zn">ZONE 5</div>
+            <div class="zt">High Intensity</div>
+          </div>
+        </div>
+
+        <div class="principle-strip">
+          <div class="principle-note">
+            <div class="pn-label">Core Principle</div>
+            <p class="quote">"Most weekly running should be easy."</p>
+          </div>
+          <div class="principle-note">
+            <div class="pn-label">Talk Test</div>
+            <p>If you can speak in complete sentences, your pace is probably easy enough.</p>
+          </div>
+          <div class="principle-note">
+            <div class="pn-label">A Note On Numbers</div>
+            <p>Zones here are a guide for effort, not a medical prescription. Heart-rate percentages are not treated as absolute rules — rely on effort and the talk test.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RUNNING INTENSITY SYSTEM ============ -->
+  <section class="section" id="intensity">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow">Running Protocol</div>
+          <div class="section-title">Intensity System</div>
+          <div class="section-sub">Three modes of effort. Each with its own purpose — none of them interchangeable.</div>
+        </div>
+      </div>
+
+      <div class="intensity-grid reveal">
+        <div class="intensity-card">
+          <div class="ic-num">01</div>
+          <h3>Easy</h3>
+          <div class="ic-row"><span class="k">Effort</span><span class="v">Low</span></div>
+          <div class="ic-row"><span class="k">Breathing</span><span class="v">Controlled</span></div>
+          <div class="ic-row"><span class="k">Conversation</span><span class="v">Easy</span></div>
+          <div class="ic-row"><span class="k">Purpose</span><span class="v">Aerobic base + recovery</span></div>
+        </div>
+        <div class="intensity-card">
+          <div class="ic-num">02</div>
+          <h3>Tempo</h3>
+          <div class="ic-row"><span class="k">Effort</span><span class="v">Moderately hard</span></div>
+          <div class="ic-row"><span class="k">Breathing</span><span class="v">Heavy but controlled</span></div>
+          <div class="ic-row"><span class="k">Conversation</span><span class="v">Difficult</span></div>
+          <div class="ic-row"><span class="k">Purpose</span><span class="v">Sustainable speed</span></div>
+        </div>
+        <div class="intensity-card">
+          <div class="ic-num">03</div>
+          <h3>Interval</h3>
+          <div class="ic-row"><span class="k">Effort</span><span class="v">Hard</span></div>
+          <div class="ic-row"><span class="k">Duration</span><span class="v">Short repetitions</span></div>
+          <div class="ic-row"><span class="k">Recovery</span><span class="v">Between repetitions</span></div>
+          <div class="ic-row"><span class="k">Purpose</span><span class="v">Speed + running economy</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LONG RUN PROGRESSION ============ -->
+  <section class="section" id="long-run">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow">Endurance Curve</div>
+          <div class="section-title">Long Run</div>
+          <div class="section-sub">"Build endurance, not exhaustion." Twelve weeks, three deloads, one direction.</div>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <div class="progression-chart" id="progression-chart"></div>
+        <div class="prog-labels" id="progression-labels"></div>
+
+        <div class="prog-legend">
+          <div class="prog-legend-item"><span class="legend-swatch"></span> Progression week</div>
+          <div class="prog-legend-item"><span class="legend-swatch deload"></span> Deload week</div>
+        </div>
+
+        <p class="progression-note">Increase gradually. Do not increase distance and intensity aggressively at the same time. The Long Run should generally be slower than hard training — it is not a race.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ WARM-UP & COOL-DOWN ============ -->
+  <section class="section" id="prep">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow">Bracket Every Session</div>
+          <div class="section-title">Warm-up & Cool-down</div>
+          <div class="section-sub">Ten minutes on either side of the run. Non-negotiable, not optional.</div>
+        </div>
+      </div>
+
+      <div class="checklist-grid reveal">
+        <div class="checklist-card">
+          <div class="checklist-card-head">
+            <h3>Warm-up</h3>
+            <span class="checklist-meta">8–10 MIN</span>
+          </div>
+          <div id="warmup-list"></div>
+        </div>
+        <div class="checklist-card">
+          <div class="checklist-card-head">
+            <h3>Cool-down</h3>
+            <span class="checklist-meta">POST-RUN</span>
+          </div>
+          <div id="cooldown-list"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RUNNING TECHNIQUE ============ -->
+  <section class="section" id="technique">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow">Form Fundamentals</div>
+          <div class="section-title">Running Technique</div>
+          <div class="section-sub">Five principles. None of them forced — all of them natural, given time.</div>
+        </div>
+      </div>
+
+      <div class="technique-list reveal">
+        <div class="technique-row">
+          <div class="technique-name">Posture</div>
+          <div class="technique-body">Head neutral. Eyes forward. Shoulders relaxed.</div>
+        </div>
+        <div class="technique-row">
+          <div class="technique-name">Foot Strike</div>
+          <div class="technique-body">Do not force a specific foot strike. Aim for a comfortable, natural landing beneath the body.</div>
+        </div>
+        <div class="technique-row">
+          <div class="technique-name">Arms</div>
+          <div class="technique-body">Elbows at approximately 90°. Move arms forward and backward rather than excessively across the body.</div>
+        </div>
+        <div class="technique-row">
+          <div class="technique-name">Cadence</div>
+          <div class="technique-body">Do not force an arbitrary cadence number. Let cadence develop naturally with comfortable form and pace.</div>
+        </div>
+        <div class="technique-row">
+          <div class="technique-name">Breathing</div>
+          <div class="technique-body">Use relaxed, rhythmic breathing. Easy running should feel controlled rather than breathless.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RECOVERY ============ -->
+  <section class="section" id="recovery">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow">Outside The Run</div>
+          <div class="section-title">Recovery</div>
+          <div class="section-sub">Adaptation happens between sessions, not during them.</div>
+        </div>
+      </div>
+
+      <div class="recovery-grid reveal">
+        <div class="recovery-cell">
+          <div class="rc-label">Sleep</div>
+          <div class="rc-value">7.5–9 HRS</div>
+          <div class="rc-desc">Aim for consistent, sufficient sleep to support adaptation.</div>
+        </div>
+        <div class="recovery-cell">
+          <div class="rc-label">Hydration</div>
+          <div class="rc-value">Regular Intake</div>
+          <div class="rc-desc">Drink regularly according to thirst, climate, and training conditions.</div>
+        </div>
+        <div class="recovery-cell">
+          <div class="rc-label">Nutrition</div>
+          <div class="rc-value">Fuel & Rebuild</div>
+          <div class="rc-desc">Eat enough overall food, with adequate protein and carbohydrates, to support training and recovery.</div>
+        </div>
+        <div class="recovery-cell">
+          <div class="rc-label">Recovery Day</div>
+          <div class="rc-value">Friday</div>
+          <div class="rc-desc">No running. Optional walking, mobility, stretching, sleep.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRAINING RULES ============ -->
+  <section class="section" id="rules">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow">The Protocol</div>
+          <div class="section-title">Training Rules</div>
+        </div>
+      </div>
+
+      <div class="rules-list reveal" id="rules-list"></div>
+    </div>
+  </section>
+
+  <!-- ============ WEEKLY TRACKER ============ -->
+  <section class="section" id="tracker">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow">Execution</div>
+          <div class="section-title">Weekly Tracker</div>
+          <div class="section-sub">Tap a day once it's done. Friday rests by design.</div>
+        </div>
+      </div>
+
+      <div class="tracker-shell reveal">
+        <div class="tracker-top">
+          <div class="tracker-completion">
+            <div class="metric-huge" id="tracker-count">0<span class="metric-unit">/ 6</span></div>
+          </div>
+          <button class="btn-reset" onclick="resetWeek()">Reset Week</button>
+        </div>
+        <div class="tracker-progress-track">
+          <div class="tracker-progress-fill" id="tracker-fill"></div>
+        </div>
+        <div class="tracker-days" id="tracker-days"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ RUNNING LOG ============ -->
+  <section class="section" id="log" style="border-bottom:none;">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow">Optional</div>
+          <div class="section-title">Running Log</div>
+          <div class="section-sub">A private record. Stored locally in this browser only.</div>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <div class="log-form">
+          <div class="log-field">
+            <label for="log-date">Date</label>
+            <input type="date" id="log-date">
+          </div>
+          <div class="log-field">
+            <label for="log-distance">Distance (KM)</label>
+            <input type="number" step="0.1" min="0" id="log-distance" placeholder="5.0">
+          </div>
+          <div class="log-field">
+            <label for="log-duration">Duration</label>
+            <input type="text" id="log-duration" placeholder="32:10">
+          </div>
+          <div class="log-field">
+            <label for="log-pace">Avg Pace</label>
+            <input type="text" id="log-pace" placeholder="6:26 /km">
+          </div>
+          <div class="log-field">
+            <label for="log-felt">How I Felt</label>
+            <select id="log-felt">
+              <option value="Strong">Strong</option>
+              <option value="Good" selected>Good</option>
+              <option value="Okay">Okay</option>
+              <option value="Tired">Tired</option>
+              <option value="Rough">Rough</option>
+            </select>
+          </div>
+          <div class="log-field span2">
+            <label for="log-notes">Notes</label>
+            <input type="text" id="log-notes" placeholder="Optional notes">
+          </div>
+          <button class="btn-primary" onclick="addLogEntry()">Add Entry</button>
+        </div>
+
+        <div class="log-table-wrap">
+          <table class="log-table" id="log-table" style="display:none;">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Distance</th>
+                <th>Duration</th>
+                <th>Avg Pace</th>
+                <th>Felt</th>
+                <th class="notes-cell">Notes</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="log-tbody"></tbody>
+          </table>
+          <div class="log-empty" id="log-empty">No runs logged yet. Add your first entry above.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer wrap">
+  <span class="fm">Ascension Runner Protocol</span>
+  <span class="fm">Personal Training Tracker — Not A Medical Application</span>
+</footer>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ============================================================
+     DATA
+     ============================================================ */
+
+  var WEEK = [
+    {
+      key: 'saturday', label: 'Saturday', title: 'Easy Run',
+      distance: '5 KM', intensity: 'Easy / Zone 2',
+      goal: 'Aerobic base.',
+      instructions: 'Build aerobic endurance. Keep the effort conversational.',
+      rows: [['Distance','5 KM'],['Intensity','Easy / Zone 2'],['Goal','Aerobic base']]
+    },
+    {
+      key: 'sunday', label: 'Sunday', title: 'Tempo Run',
+      distance: '5 KM', intensity: 'Moderately Hard',
+      goal: 'Improve sustainable speed and lactate threshold.',
+      instructions: 'Controlled effort — hard, but sustainable for the full tempo block.',
+      structure: [['1 KM','Easy warm-up'],['3 KM','Tempo'],['1 KM','Easy cool-down']],
+      rows: [['Total','5 KM'],['Effort','Moderately hard but controlled']]
+    },
+    {
+      key: 'monday', label: 'Monday', title: 'Recovery Run',
+      distance: '3–4 KM', intensity: 'Very Easy',
+      goal: 'Recovery and circulation.',
+      instructions: 'If tired, replace the run with 30 minutes of easy walking.',
+      rows: [['Distance','3–4 KM'],['Intensity','Very Easy'],['Goal','Recovery and circulation']],
+      note: 'If tired: replace the run with 30 minutes of easy walking.'
+    },
+    {
+      key: 'tuesday', label: 'Tuesday', title: 'Intervals',
+      distance: '≈6.5 KM', intensity: '85–90% Effort',
+      goal: 'Improve speed and running economy.',
+      instructions: 'Approximately 85–90% effort. Do not sprint at maximum effort.',
+      structure: [['1.5 KM','Easy warm-up'],['6 × 400 M','Fast'],['200 M','Walk / easy jog between reps'],['1 KM','Easy cool-down']],
+      rows: [['Intensity','≈85–90% effort'],['Goal','Speed + running economy']],
+      note: 'Important: do not sprint at maximum effort.'
+    },
+    {
+      key: 'wednesday', label: 'Wednesday', title: 'Easy Run + Mobility',
+      distance: '5 KM', intensity: 'Easy / Zone 2',
+      goal: 'Aerobic base, plus targeted mobility work.',
+      instructions: 'After running: 15 minutes of mobility — ankles, hips, glutes, hamstrings, spine.',
+      rows: [['Distance','5 KM'],['Intensity','Easy / Zone 2'],['After Run','15 min mobility'],['Focus','Ankles, hips, glutes, hamstrings, spine']]
+    },
+    {
+      key: 'thursday', label: 'Thursday', title: 'Long Run',
+      distance: 'Progressive', intensity: 'Easy & Controlled',
+      goal: 'Build endurance without exhaustion.',
+      instructions: '"Long Run is not a race." Generally slower than hard training days.',
+      rows: [['Distance','Progressive — see Long Run section'],['Intensity','Easy and controlled']],
+      note: '"Long Run is not a race."'
+    },
+    {
+      key: 'friday', label: 'Friday', title: 'Full Recovery',
+      distance: 'No Running', intensity: 'Rest',
+      goal: 'Allow the body to recover and adapt.',
+      instructions: 'Optional: 20–40 minutes easy walking. Mobility. Stretching. Sleep.',
+      rows: [['Running','None'],['Optional','20–40 min easy walking'],['Also','Mobility, stretching, sleep']],
+      isRest: true
+    }
+  ];
+
+  var LONG_RUN = [
+    {w:1, km:7, deload:false},
+    {w:2, km:8, deload:false},
+    {w:3, km:9, deload:false},
+    {w:4, km:10, deload:false},
+    {w:5, km:8, deload:true},
+    {w:6, km:10, deload:false},
+    {w:7, km:11, deload:false},
+    {w:8, km:12, deload:false},
+    {w:9, km:10, deload:true},
+    {w:10, km:12, deload:false},
+    {w:11, km:13, deload:false},
+    {w:12, km:14, deload:false}
+  ];
+
+  var WARMUP_ITEMS = [
+    'Fast walking — 2 min',
+    'Leg swings — 10 each leg',
+    'Lunges — 10 each leg',
+    'High knees — 30 sec',
+    'Butt kicks — 30 sec'
+  ];
+
+  var COOLDOWN_ITEMS = [
+    'Walk — 5 min',
+    'Calf stretch',
+    'Quad stretch',
+    'Hamstring stretch',
+    'Hip mobility'
+  ];
+
+  var RULES = [
+    'Most running should be easy.',
+    'Do not turn every run into a race.',
+    'Increase training gradually.',
+    'Do not increase distance and intensity aggressively at the same time.',
+    'Take the recovery day seriously.',
+    'If unusual pain persists or worsens, stop the session and seek professional medical advice.',
+    'Consistency beats occasional extreme workouts.',
+    'Long Run = endurance, not competition.'
+  ];
+
+  var DAY_ORDER = ['saturday','sunday','monday','tuesday','wednesday','thursday','friday'];
+  // JS getDay(): 0=Sun,1=Mon,2=Tue,3=Wed,4=Thu,5=Fri,6=Sat
+  var JS_DAY_TO_KEY = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+
+  var CHECKMARK_SVG = '<svg viewBox="0 0 12 12" fill="none"><path d="M2 6L5 9L10 3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  /* ============================================================
+     THEME
+     ============================================================ */
+
+  function setTheme(mode) {
+    document.documentElement.setAttribute('data-theme', mode);
+    localStorage.setItem('ascension_theme', mode);
+    document.getElementById('theme-light').classList.toggle('active', mode === 'light');
+    document.getElementById('theme-dark').classList.toggle('active', mode === 'dark');
+  }
+  window.setTheme = setTheme;
+
+  (function initTheme() {
+    var saved = localStorage.getItem('ascension_theme');
+    if (saved === 'light' || saved === 'dark') {
+      setTheme(saved);
+    } else {
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setTheme(prefersDark ? 'dark' : 'light');
+    }
+  })();
+
+  /* ============================================================
+     TODAY DETECTION
+     ============================================================ */
+
+  function getTodayKey() {
+    var jsDay = new Date().getDay();
+    return JS_DAY_TO_KEY[jsDay];
+  }
+
+  function findDay(key) {
+    for (var i = 0; i < WEEK.length; i++) {
+      if (WEEK[i].key === key) return WEEK[i];
+    }
+    return WEEK[0];
+  }
+
+  function renderToday() {
+    var todayKey = getTodayKey();
+    var day = findDay(todayKey);
+
+    document.getElementById('topbar-day').textContent = day.label.toUpperCase() + ' · ' + formatDate(new Date());
+    document.getElementById('today-day-label').textContent = day.label;
+    document.getElementById('today-workout-name').textContent = day.title;
+    document.getElementById('today-distance').textContent = day.distance;
+    document.getElementById('today-intensity').textContent = day.intensity;
+    document.getElementById('today-instructions').textContent = '"' + day.instructions + '"';
+    document.getElementById('today-objective').textContent = day.goal;
+
+    return todayKey;
+  }
+
+  function formatDate(d) {
+    var months = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    return months[d.getMonth()] + ' ' + d.getDate();
+  }
+
+  /* ============================================================
+     WEEK RAIL + CARDS
+     ============================================================ */
+
+  function renderWeekRail(todayKey) {
+    var rail = document.getElementById('week-rail');
+    var html = '';
+    WEEK.forEach(function(day) {
+      var isToday = day.key === todayKey;
+      html += '<div class="week-pip' + (isToday ? ' is-today' : '') + '" onclick="scrollToDay(\'' + day.key + '\')">' +
+        '<div class="d">' + day.label.slice(0,3) + '</div>' +
+        '<div class="t">' + day.title + '</div>' +
+        '</div>';
+    });
+    rail.innerHTML = html;
+  }
+
+  window.scrollToDay = function(key) {
+    var el = document.getElementById('day-card-' + key);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
+  function renderWeekCards(todayKey) {
+    var container = document.getElementById('week-cards');
+    var html = '';
+    WEEK.forEach(function(day) {
+      var isToday = day.key === todayKey;
+      html += '<div class="day-card' + (isToday ? ' is-today' : '') + '" id="day-card-' + day.key + '">';
+      html += '<div class="day-card-head">';
+      html += '<span class="day-card-day">' + day.label + '</span>';
+      if (isToday) html += '<span class="day-card-badge">Today</span>';
+      html += '</div>';
+      html += '<div class="day-card-title">' + day.title + '</div>';
+
+      day.rows.forEach(function(row) {
+        html += '<div class="day-card-row"><span class="k">' + row[0] + '</span><span class="v">' + row[1] + '</span></div>';
+      });
+
+      if (day.structure) {
+        html += '<div class="day-card-structure">';
+        day.structure.forEach(function(s) {
+          html += '<div class="day-card-structure-item"><span class="tag">' + s[0] + '</span><span>' + s[1] + '</span></div>';
+        });
+        html += '</div>';
+      }
+
+      html += '<div class="day-card-goal"><strong>Goal —</strong> ' + day.goal + '</div>';
+
+      if (day.note) {
+        html += '<div class="day-card-note">' + day.note + '</div>';
+      }
+
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  /* ============================================================
+     LONG RUN CHART
+     ============================================================ */
+
+  function renderProgressionChart() {
+    var maxKm = Math.max.apply(null, LONG_RUN.map(function(w) { return w.km; }));
+    var chart = document.getElementById('progression-chart');
+    var labels = document.getElementById('progression-labels');
+    var chartHtml = '';
+    var labelHtml = '';
+
+    LONG_RUN.forEach(function(week, idx) {
+      var heightPct = (week.km / maxKm) * 100;
+      chartHtml += '<div class="prog-col' + (week.deload ? ' deload' : '') + '">' +
+        '<div class="pv">' + week.km + '</div>' +
+        '<div class="prog-bar-wrap"><div class="prog-bar" style="height:' + heightPct + '%; animation-delay:' + (idx * 40) + 'ms;"></div></div>' +
+        '</div>';
+      labelHtml += '<div class="pl">W' + week.w + '</div>';
+    });
+
+    chart.innerHTML = chartHtml;
+    labels.innerHTML = labelHtml;
+  }
+
+  /* ============================================================
+     RULES
+     ============================================================ */
+
+  function renderRules() {
+    var list = document.getElementById('rules-list');
+    var html = '';
+    RULES.forEach(function(rule, i) {
+      var isWarn = rule.toLowerCase().indexOf('pain') !== -1;
+      var num = String(i + 1).padStart(2, '0');
+      html += '<div class="rule-row' + (isWarn ? ' warn' : '') + '">' +
+        '<div class="rule-num">' + num + '</div>' +
+        '<div class="rule-text">' + rule + '</div>' +
+        '</div>';
+    });
+    list.innerHTML = html;
+  }
+
+  /* ============================================================
+     CHECKLISTS (Warm-up / Cool-down) — localStorage
+     ============================================================ */
+
+  function renderChecklist(containerId, items, storageKey) {
+    var container = document.getElementById(containerId);
+    var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    var html = '';
+    items.forEach(function(item, i) {
+      var checked = !!saved[i];
+      html += '<div class="check-item' + (checked ? ' checked' : '') + '" data-idx="' + i + '" onclick="toggleCheck(\'' + storageKey + '\', ' + i + ', \'' + containerId + '\')">' +
+        '<div class="check-box">' + CHECKMARK_SVG + '</div>' +
+        '<div class="check-label">' + item + '</div>' +
+        '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  window.toggleCheck = function(storageKey, idx, containerId) {
+    var saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+    saved[idx] = !saved[idx];
+    localStorage.setItem(storageKey, JSON.stringify(saved));
+    var el = document.querySelector('#' + containerId + ' .check-item[data-idx="' + idx + '"]');
+    if (el) el.classList.toggle('checked', !!saved[idx]);
+  };
+
+  /* ============================================================
+     WEEKLY TRACKER — localStorage, resets automatically per ISO week
+     ============================================================ */
+
+  var TRACKER_DAYS = [
+    {key:'saturday', label:'SAT'},
+    {key:'sunday', label:'SUN'},
+    {key:'monday', label:'MON'},
+    {key:'tuesday', label:'TUE'},
+    {key:'wednesday', label:'WED'},
+    {key:'thursday', label:'THU'}
+  ];
+
+  function getWeekStamp() {
+    // Simple week stamp so old data doesn't bleed into a new week silently.
+    var d = new Date();
+    var onejan = new Date(d.getFullYear(), 0, 1);
+    var week = Math.ceil((((d - onejan) / 86400000) + onejan.getDay() + 1) / 7);
+    return d.getFullYear() + '-W' + week;
+  }
+
+  function getTrackerState() {
+    var stamp = getWeekStamp();
+    var raw = JSON.parse(localStorage.getItem('ascension_tracker') || '{}');
+    if (raw.stamp !== stamp) {
+      raw = { stamp: stamp, days: {} };
+      localStorage.setItem('ascension_tracker', JSON.stringify(raw));
+    }
+    return raw;
+  }
+
+  function saveTrackerState(state) {
+    localStorage.setItem('ascension_tracker', JSON.stringify(state));
+  }
+
+  function renderTracker() {
+    var state = getTrackerState();
+    var container = document.getElementById('tracker-days');
+    var html = '';
+
+    TRACKER_DAYS.forEach(function(d) {
+      var done = !!state.days[d.key];
+      html += '<div class="tracker-day' + (done ? ' done' : '') + '" data-key="' + d.key + '" onclick="toggleTrackerDay(\'' + d.key + '\')">' +
+        '<div class="td-label">' + d.label + '</div>' +
+        '<div class="td-box">' + CHECKMARK_SVG + '</div>' +
+        '</div>';
+    });
+
+    html += '<div class="tracker-day rest">' +
+      '<div class="td-label">FRI</div>' +
+      '<div class="td-box"></div>' +
+      '</div>';
+
+    container.innerHTML = html;
+    updateTrackerCount(state);
+  }
+
+  function updateTrackerCount(state) {
+    var count = 0;
+    TRACKER_DAYS.forEach(function(d) { if (state.days[d.key]) count++; });
+    document.getElementById('tracker-count').innerHTML = count + '<span class="metric-unit">/ 6</span>';
+    var pct = Math.round((count / 6) * 100);
+    document.getElementById('tracker-fill').style.width = pct + '%';
+  }
+
+  window.toggleTrackerDay = function(key) {
+    var state = getTrackerState();
+    state.days[key] = !state.days[key];
+    saveTrackerState(state);
+    var el = document.querySelector('.tracker-day[data-key="' + key + '"]');
+    if (el) el.classList.toggle('done', !!state.days[key]);
+    updateTrackerCount(state);
+  };
+
+  window.resetWeek = function() {
+    var state = getTrackerState();
+    state.days = {};
+    saveTrackerState(state);
+    renderTracker();
+  };
+
+  /* ============================================================
+     RUNNING LOG — localStorage
+     ============================================================ */
+
+  function getLogEntries() {
+    return JSON.parse(localStorage.getItem('ascension_log') || '[]');
+  }
+
+  function saveLogEntries(entries) {
+    localStorage.setItem('ascension_log', JSON.stringify(entries));
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function renderLog() {
+    var entries = getLogEntries();
+    var table = document.getElementById('log-table');
+    var tbody = document.getElementById('log-tbody');
+    var empty = document.getElementById('log-empty');
+
+    if (entries.length === 0) {
+      table.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+
+    table.style.display = 'table';
+    empty.style.display = 'none';
+
+    var sorted = entries.slice().sort(function(a, b) {
+      return (b.date || '').localeCompare(a.date || '');
+    });
+
+    var html = '';
+    sorted.forEach(function(entry) {
+      html += '<tr>' +
+        '<td>' + escapeHtml(entry.date || '—') + '</td>' +
+        '<td>' + escapeHtml(entry.distance ? entry.distance + ' KM' : '—') + '</td>' +
+        '<td>' + escapeHtml(entry.duration || '—') + '</td>' +
+        '<td>' + escapeHtml(entry.pace || '—') + '</td>' +
+        '<td>' + escapeHtml(entry.felt || '—') + '</td>' +
+        '<td class="notes-cell">' + escapeHtml(entry.notes || '—') + '</td>' +
+        '<td><button class="log-del" title="Delete" onclick="deleteLogEntry(\'' + entry.id + '\')">×</button></td>' +
+        '</tr>';
+    });
+
+    tbody.innerHTML = html;
+  }
+
+  window.addLogEntry = function() {
+    var date = document.getElementById('log-date').value;
+    var distance = document.getElementById('log-distance').value;
+    var duration = document.getElementById('log-duration').value;
+    var pace = document.getElementById('log-pace').value;
+    var felt = document.getElementById('log-felt').value;
+    var notes = document.getElementById('log-notes').value;
+
+    if (!date && !distance && !duration) {
+      return;
+    }
+
+    var entries = getLogEntries();
+    entries.push({
+      id: 'e' + Date.now(),
+      date: date,
+      distance: distance,
+      duration: duration,
+      pace: pace,
+      felt: felt,
+      notes: notes
+    });
+    saveLogEntries(entries);
+    renderLog();
+
+    document.getElementById('log-date').value = '';
+    document.getElementById('log-distance').value = '';
+    document.getElementById('log-duration').value = '';
+    document.getElementById('log-pace').value = '';
+    document.getElementById('log-notes').value = '';
+    document.getElementById('log-felt').value = 'Good';
+  };
+
+  window.deleteLogEntry = function(id) {
+    var entries = getLogEntries().filter(function(e) { return e.id !== id; });
+    saveLogEntries(entries);
+    renderLog();
+  };
+
+  /* ============================================================
+     SCROLL RAIL + REVEAL ON SCROLL
+     ============================================================ */
+
+  function initScrollRail() {
+    var rail = document.getElementById('scroll-rail');
+    function update() {
+      var scrollTop = window.scrollY || document.documentElement.scrollTop;
+      var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      var pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      rail.style.width = pct + '%';
+    }
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+
+  function initReveal() {
+    var items = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+      items.forEach(function(el) { el.classList.add('in'); });
+      return;
+    }
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('in');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+    items.forEach(function(el) { observer.observe(el); });
+  }
+
+  /* ============================================================
+     INIT
+     ============================================================ */
+
+  function init() {
+    var todayKey = renderToday();
+    renderWeekRail(todayKey);
+    renderWeekCards(todayKey);
+    renderProgressionChart();
+    renderRules();
+    renderChecklist('warmup-list', WARMUP_ITEMS, 'ascension_warmup');
+    renderChecklist('cooldown-list', COOLDOWN_ITEMS, 'ascension_cooldown');
+    renderTracker();
+    renderLog();
+    initScrollRail();
+    initReveal();
+
+    // Default date field to today
+    var today = new Date();
+    var iso = today.toISOString().split('T')[0];
+    document.getElementById('log-date').value = iso;
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+
+</body>
+</html>
