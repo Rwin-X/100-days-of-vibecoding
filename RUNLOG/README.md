@@ -73,7 +73,7 @@ There is no backend, no database, no authentication, and no external network cal
 
 No installation or build step required.
 
-1. Download [`run-log.html`](./run-log.html).
+1. Download
 2. Open it in any modern browser (Chrome, Firefox, Safari, Edge).
 3. Start logging runs with **+ Add Run**.
 
