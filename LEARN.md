@@ -18,6 +18,8 @@ what i learn :
           rwin.sh ----> resume
           rwin.html ----> resume
           rwin.py ----> resume(cli)
+          ------
+          learn html prompt claude obe page
     6 ---->
 
          what is layer of vibe coding
