@@ -8,7 +8,7 @@ what i learn :
           you must think and have deep learn about app
     3 ---->
           problem !
-              is okay to publish security apps?
+              
                   or it will be weakness of me ?
     4 ---->
           -------------------------data lake / and identity lead------------------------
@@ -64,7 +64,7 @@ what i learn :
             ideas will find you
     !!! ::------------------------------------------------------------------------------------------------------------------------------------:: !!!
 
-                        claude have a really good output bit i dont lnow when>><<??
+                        claude have a really good output bit i dont know when>><<??
                         matrix fear death nightmare? antropic ai west 
                         no idea ---> out of idea ---<<
 
