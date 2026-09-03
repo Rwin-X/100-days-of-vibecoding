@@ -22,6 +22,7 @@ what i learn :
           learn html prompt claude obe page
 
           BAHS FINIFHED
+          time to java or ccna
           
     6 ---->
 
