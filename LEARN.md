@@ -20,6 +20,9 @@ what i learn :
           rwin.py ----> resume(cli)
           ------
           learn html prompt claude obe page
+
+          BAHS FINIFHED
+          
     6 ---->
 
          what is layer of vibe coding
