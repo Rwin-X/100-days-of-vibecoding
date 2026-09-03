@@ -1,4 +1,5 @@
 bash notes from arvin 
 
 
----teacher : dave eddy
+---
+teacher : dave eddy
