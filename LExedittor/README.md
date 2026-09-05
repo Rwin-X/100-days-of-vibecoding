@@ -1,5 +1,3 @@
-[README.md](https://github.com/user-attachments/files/31868265/README.md)
-
 # Vedit — a modal text editor with a modern, themeable UI
 
 A vim-style modal editor built with PyQt6: real Normal / Insert / Visual /
